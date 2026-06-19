@@ -177,6 +177,10 @@ function showSlide(index) {
   slides.forEach((slide, i) => slide.classList.toggle("active", i === activeSlide));
   stage.dataset.mode = slides[activeSlide].id.replace("Slide", "");
   activeLabel.textContent = slides[activeSlide].dataset.title;
+  if (window.matchMedia("(max-width: 760px)").matches) {
+    document.scrollingElement.scrollTop = 0;
+    window.scrollTo(0, 0);
+  }
   startSlideshow();
 }
 
