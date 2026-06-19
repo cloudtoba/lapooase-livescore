@@ -25,9 +25,7 @@
           </div>
         </div>
         <nav class="nav-tabs" aria-label="Mode tampilan">
-          <span id="activeLabel">Live Score</span>
-          <span>WIB</span>
-          <span>Auto Slide</span>
+          <span id="activeLabel">Malam Ini / Besok</span>
         </nav>
         <div class="clock">
           <span id="localDate">Memuat tanggal</span>
@@ -48,22 +46,16 @@
         </div>
         <div class="hero-actions">
           <span>2026</span>
-          <span id="dataStatus">Memuat data</span>
+          <a class="hero-link" href="https://maps.app.goo.gl/ZihDpcn2Ps2HVDtz5" target="_blank" rel="noopener">
+            Lokasi Lapo Oase
+          </a>
+          <a class="hero-link" href="https://www.instagram.com/oaseporsea/" target="_blank" rel="noopener">
+            IG @oaseporsea
+          </a>
         </div>
       </section>
 
-      <section class="slide active" id="liveSlide" data-title="Live Score">
-        <div class="slide-head">
-          <div>
-            <p class="eyebrow">Skor pertandingan</p>
-            <h2 id="liveHeading">Live Score</h2>
-          </div>
-          <span class="status-pill" id="liveCount">0 live</span>
-        </div>
-        <div class="match-grid" id="liveMatches"></div>
-      </section>
-
-      <section class="slide" id="scheduleSlide" data-title="Malam Ini / Besok">
+      <section class="slide active" id="scheduleSlide" data-title="Malam Ini / Besok">
         <div class="slide-head">
           <div>
             <p class="eyebrow">Waktu Indonesia Barat</p>
@@ -72,6 +64,17 @@
           <span class="status-pill" id="scheduleCount">0 pertandingan</span>
         </div>
         <div class="schedule-list" id="scheduleMatches"></div>
+      </section>
+
+      <section class="slide" id="liveSlide" data-title="Live Score">
+        <div class="slide-head">
+          <div>
+            <p class="eyebrow">Skor pertandingan</p>
+            <h2 id="liveHeading">Live Score</h2>
+          </div>
+          <span class="status-pill" id="liveCount">0 live</span>
+        </div>
+        <div class="match-grid" id="liveMatches"></div>
       </section>
 
       <section class="slide" id="standingsSlide" data-title="Klasemen Grup">
@@ -159,42 +162,7 @@
           <span>›</span>
         </button>
         <button id="refreshBtn" class="text-button">Refresh</button>
-        <button id="settingsBtn" class="text-button">Data</button>
       </footer>
-
-      <dialog id="settingsDialog">
-        <form method="dialog" class="settings">
-          <div class="dialog-head">
-            <h3>Pengaturan Data</h3>
-            <button value="cancel" aria-label="Tutup">×</button>
-          </div>
-          <label>
-            API-Football Key
-            <input id="apiKeyInput" type="password" autocomplete="off" placeholder="Opsional" />
-          </label>
-          <label>
-            Musim / Year
-            <input id="seasonInput" type="number" min="2026" max="2026" value="2026" />
-          </label>
-          <label>
-            Durasi slide
-            <select id="intervalInput">
-              <option value="10000">10 detik</option>
-              <option value="15000">15 detik</option>
-              <option value="20000">20 detik</option>
-              <option value="30000">30 detik</option>
-            </select>
-          </label>
-          <p>
-            Tanpa API key, website memakai jadwal lokal yang sudah diset dalam WIB supaya layout bisa
-            dicek di localhost. Dengan key API-Football, data akan difilter ke league World Cup.
-          </p>
-          <menu>
-            <button id="clearKeyBtn" type="button">Hapus key</button>
-            <button id="saveSettingsBtn" value="default">Simpan</button>
-          </menu>
-        </form>
-      </dialog>
     </main>
 
     <script src="./app.js" type="module"></script>

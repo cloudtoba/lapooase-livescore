@@ -19,8 +19,7 @@ http://localhost:5173
 Urutan sumber data:
 
 1. `data/matches.json` untuk data lokal. File ini sudah berisi fixture fase grup sampai akhir Juni WIB.
-2. API-Football jika API key dimasukkan lewat tombol `Data`.
-3. Fallback demo otomatis kalau data tidak tersedia.
+2. Fallback demo otomatis kalau data lokal tidak tersedia.
 
 Format waktu selalu ditampilkan dalam `Asia/Jakarta` / WIB.
 Slide jadwal otomatis mengambil pertandingan berikutnya dari waktu saat ini, bukan hanya tanggal hari ini.

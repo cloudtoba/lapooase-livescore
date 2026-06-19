@@ -1,6 +1,4 @@
-const API_HOST = "v3.football.api-sports.io";
 const STORAGE = {
-  key: "worldcup_api_key",
   interval: "worldcup_slide_interval",
 };
 const WIB_TIMEZONE = "Asia/Jakarta";
@@ -115,10 +113,6 @@ const scheduleCount = document.querySelector("#scheduleCount");
 const standingsCount = document.querySelector("#standingsCount");
 const localDate = document.querySelector("#localDate");
 const localTime = document.querySelector("#localTime");
-const settingsDialog = document.querySelector("#settingsDialog");
-const apiKeyInput = document.querySelector("#apiKeyInput");
-const seasonInput = document.querySelector("#seasonInput");
-const intervalInput = document.querySelector("#intervalInput");
 const pauseIcon = document.querySelector("#pauseIcon");
 
 let activeSlide = 0;
@@ -130,9 +124,7 @@ let slideInterval = Number(localStorage.getItem(STORAGE.interval)) || 15000;
 init();
 
 function init() {
-  stage.dataset.mode = "live";
-  apiKeyInput.value = localStorage.getItem(STORAGE.key) || "";
-  intervalInput.value = String(slideInterval);
+  stage.dataset.mode = slides[activeSlide].id.replace("Slide", "");
   bindControls();
   tickClock();
   setInterval(tickClock, 1000);
@@ -150,19 +142,6 @@ function bindControls() {
     isPaused = !isPaused;
     pauseIcon.textContent = isPaused ? "▶" : "Ⅱ";
     startSlideshow();
-  });
-  document.querySelector("#settingsBtn").addEventListener("click", () => settingsDialog.showModal());
-  document.querySelector("#clearKeyBtn").addEventListener("click", () => {
-    apiKeyInput.value = "";
-    localStorage.removeItem(STORAGE.key);
-  });
-  document.querySelector("#saveSettingsBtn").addEventListener("click", () => {
-    const key = apiKeyInput.value.trim();
-    if (key) localStorage.setItem(STORAGE.key, key);
-    localStorage.setItem(STORAGE.interval, intervalInput.value);
-    slideInterval = Number(intervalInput.value);
-    startSlideshow();
-    loadData();
   });
 }
 
@@ -197,7 +176,7 @@ function tickClock() {
 }
 
 async function loadData() {
-  dataStatus.textContent = "Memuat data";
+  if (dataStatus) dataStatus.textContent = "Memuat data";
   try {
     const matches = await fetchMatches();
     render(matches, matches.source);
@@ -208,36 +187,10 @@ async function loadData() {
 }
 
 async function fetchMatches() {
-  const key = localStorage.getItem(STORAGE.key);
-  if (key) {
-    const dates = nextDateKeys(4);
-    const responses = await Promise.all(dates.map((date) => fetchApiFootballDate(date, key)));
-    const items = responses.flat();
-    return { items, source: "API-Football" };
-  }
-
   const localEndpoint = await fetchLocalEndpoint();
   if (localEndpoint.items.length) return localEndpoint;
 
   return { items: fallbackMatches, source: "Demo data" };
-}
-
-async function fetchApiFootballDate(date, key) {
-  const params = new URLSearchParams({
-    league: "1",
-    season: seasonInput.value || "2026",
-    date,
-    timezone: WIB_TIMEZONE,
-  });
-  const response = await fetch(`https://${API_HOST}/fixtures?${params}`, {
-    headers: {
-      "x-rapidapi-host": API_HOST,
-      "x-rapidapi-key": key,
-    },
-  });
-  if (!response.ok) throw new Error(`API-Football error ${response.status}`);
-  const payload = await response.json();
-  return (payload.response || []).map(normalizeApiFootball);
 }
 
 async function fetchLocalEndpoint() {
@@ -250,22 +203,6 @@ async function fetchLocalEndpoint() {
   } catch {
     return { items: [], source: "Local JSON" };
   }
-}
-
-function normalizeApiFootball(item) {
-  return {
-    id: item.fixture.id,
-    home: item.teams.home.name,
-    away: item.teams.away.name,
-    homeScore: item.goals.home,
-    awayScore: item.goals.away,
-    status: item.fixture.status.short,
-    elapsed: item.fixture.status.elapsed,
-    kickoff: item.fixture.date,
-    venue: item.fixture.venue?.name || item.fixture.venue?.city || "",
-    group: item.league.round?.replace("Group Stage - ", "") || item.league.round || "",
-    league: item.league.name,
-  };
 }
 
 function normalizeLocalMatch(match) {
@@ -310,7 +247,7 @@ function render({ items, source }) {
   const standings = buildStandings(items);
   standingsGrid.innerHTML = renderStandings(standings);
 
-  dataStatus.textContent = `${source}`;
+  if (dataStatus) dataStatus.textContent = `${source}`;
   liveCount.textContent = live.length ? `${visibleFeatured.length} live` : `${visibleFeatured.length} skor`;
   scheduleCount.textContent = `${upcoming.length} berikutnya`;
   standingsCount.textContent = `${Object.keys(standings).length} grup`;
