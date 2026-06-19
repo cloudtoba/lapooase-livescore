@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>World Cup 2026 Live Board</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bricolage+Grotesque:wght@600;700;800&family=Inter:wght@500;600;700;800;900&family=Rye&family=Ultra&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="stage" aria-live="polite">
+      <img class="backdrop" src="./assets/stadium-bg.png" alt="" />
+      <div class="shade"></div>
+
+      <header class="appbar">
+        <div class="brand">
+          <div>
+            <strong>LAPO OASE</strong>
+            <span>World Cup Live Score</span>
+          </div>
+        </div>
+        <nav class="nav-tabs" aria-label="Mode tampilan">
+          <span id="activeLabel">Live Score</span>
+          <span>WIB</span>
+          <span>Auto Slide</span>
+        </nav>
+        <div class="clock">
+          <span id="localDate">Memuat tanggal</span>
+          <strong id="localTime">--:-- WIB</strong>
+        </div>
+      </header>
+
+      <section class="league-hero">
+        <div>
+          <p>Tempat nongkrong paling nyaman</p>
+          <h1>FIFA World Cup</h1>
+          <div class="hero-tabs">
+            <span class="is-active">Overview</span>
+            <span>Fixtures</span>
+            <span>Live</span>
+            <span>Results</span>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <span>2026</span>
+          <span id="dataStatus">Memuat data</span>
+        </div>
+      </section>
+
+      <section class="slide active" id="liveSlide" data-title="Live Score">
+        <div class="slide-head">
+          <div>
+            <p class="eyebrow">Skor pertandingan</p>
+            <h2 id="liveHeading">Live Score</h2>
+          </div>
+          <span class="status-pill" id="liveCount">0 live</span>
+        </div>
+        <div class="match-grid" id="liveMatches"></div>
+      </section>
+
+      <section class="slide" id="scheduleSlide" data-title="Malam Ini / Besok">
+        <div class="slide-head">
+          <div>
+            <p class="eyebrow">Waktu Indonesia Barat</p>
+            <h2>Jadwal Berikutnya</h2>
+          </div>
+          <span class="status-pill" id="scheduleCount">0 pertandingan</span>
+        </div>
+        <div class="schedule-list" id="scheduleMatches"></div>
+      </section>
+
+      <section class="slide" id="standingsSlide" data-title="Klasemen Grup">
+        <div class="slide-head">
+          <div>
+            <p class="eyebrow">Poin semua tim</p>
+            <h2>Klasemen Grup</h2>
+          </div>
+          <span class="status-pill" id="standingsCount">12 grup</span>
+        </div>
+        <div class="standings-grid" id="standingsGrid"></div>
+      </section>
+
+      <section class="slide" id="menuSlide" data-title="Menu Matchday">
+        <div class="slide-head">
+          <div>
+            <p class="eyebrow">Signature Lapo Oase</p>
+            <h2>Menu Matchday</h2>
+          </div>
+          <span class="status-pill">Paket Nobar</span>
+        </div>
+        <div class="menu-board">
+          <article class="menu-feature">
+            <span class="menu-label">Favorit rame-rame</span>
+            <h3>Oase Siak Tolu</h3>
+            <p>Nasi dan lauk favorit digoreng garing, disajikan dengan tiga varian sambal.</p>
+            <div class="menu-prices">
+              <span>Ayam <strong>30</strong></span>
+              <span>Babi <strong>35</strong></span>
+              <span>Lele <strong>25</strong></span>
+            </div>
+          </article>
+
+          <article class="menu-card">
+            <span class="menu-label">Paket Tabo</span>
+            <h3>39</h3>
+            <p>Dimsum goreng pilihan Anda + kopi tubruk.</p>
+          </article>
+
+          <article class="menu-card">
+            <span class="menu-label">Paket Sabas</span>
+            <h3>45</h3>
+            <p>Oase Siak Tolu babi + teh anti masuk angin.</p>
+          </article>
+
+          <article class="menu-card">
+            <span class="menu-label">Paket MDK</span>
+            <h3>50</h3>
+            <p>Tambul babi goreng siak tolu + 2 gelas tuak.</p>
+          </article>
+
+          <article class="menu-card">
+            <span class="menu-label">Paket Mamora</span>
+            <h3>25</h3>
+            <p>Indomie kuah/goreng + telur + teh manis panas.</p>
+          </article>
+
+          <article class="menu-card accent">
+            <span class="menu-label">Signature Drink</span>
+            <h3>Oase Latte 19</h3>
+            <p>Signature latte dengan gula aren.</p>
+          </article>
+
+          <article class="menu-card accent">
+            <span class="menu-label">Snacks</span>
+            <h3>20</h3>
+            <p>Kentang, ubi, pisang gula aren, sosis, tahu atau tempe goreng.</p>
+          </article>
+
+          <article class="games-strip">
+            <strong>Makan minum bebas bermain aneka games</strong>
+            <span>Dart · Catur · Uno & Stacko · Domino · Karaoke</span>
+          </article>
+        </div>
+      </section>
+
+      <footer class="controls">
+        <button id="prevBtn" title="Slide sebelumnya" aria-label="Slide sebelumnya">
+          <span>‹</span>
+        </button>
+        <button id="pauseBtn" title="Jeda slideshow" aria-label="Jeda slideshow">
+          <span id="pauseIcon">Ⅱ</span>
+        </button>
+        <button id="nextBtn" title="Slide berikutnya" aria-label="Slide berikutnya">
+          <span>›</span>
+        </button>
+        <button id="refreshBtn" class="text-button">Refresh</button>
+        <button id="settingsBtn" class="text-button">Data</button>
+      </footer>
+
+      <dialog id="settingsDialog">
+        <form method="dialog" class="settings">
+          <div class="dialog-head">
+            <h3>Pengaturan Data</h3>
+            <button value="cancel" aria-label="Tutup">×</button>
+          </div>
+          <label>
+            API-Football Key
+            <input id="apiKeyInput" type="password" autocomplete="off" placeholder="Opsional" />
+          </label>
+          <label>
+            Musim / Year
+            <input id="seasonInput" type="number" min="2026" max="2026" value="2026" />
+          </label>
+          <label>
+            Durasi slide
+            <select id="intervalInput">
+              <option value="10000">10 detik</option>
+              <option value="15000">15 detik</option>
+              <option value="20000">20 detik</option>
+              <option value="30000">30 detik</option>
+            </select>
+          </label>
+          <p>
+            Tanpa API key, website memakai jadwal lokal yang sudah diset dalam WIB supaya layout bisa
+            dicek di localhost. Dengan key API-Football, data akan difilter ke league World Cup.
+          </p>
+          <menu>
+            <button id="clearKeyBtn" type="button">Hapus key</button>
+            <button id="saveSettingsBtn" value="default">Simpan</button>
+          </menu>
+        </form>
+      </dialog>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
