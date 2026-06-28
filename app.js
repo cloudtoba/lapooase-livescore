@@ -4,20 +4,12 @@ const STORAGE = {
 const WIB_TIMEZONE = "Asia/Jakarta";
 const UPCOMING_LIMIT = 4;
 const FEATURED_SCORE_LIMIT = 2;
-const GROUPS = {
-  "Group A": ["Mexico", "Korea Republic", "Czechia", "South Africa"],
-  "Group B": ["Canada", "Switzerland", "Bosnia-Herzegovina", "Qatar"],
-  "Group C": ["Scotland", "Morocco", "Brazil", "Haiti"],
-  "Group D": ["United States", "Australia", "Turkiye", "Paraguay"],
-  "Group E": ["Germany", "Ivory Coast", "Ecuador", "Curacao"],
-  "Group F": ["Sweden", "Netherlands", "Japan", "Tunisia"],
-  "Group G": ["Belgium", "Egypt", "Iran", "New Zealand"],
-  "Group H": ["Saudi Arabia", "Uruguay", "Spain", "Cape Verde"],
-  "Group I": ["France", "Norway", "Senegal", "Iraq"],
-  "Group J": ["Argentina", "Austria", "Algeria", "Jordan"],
-  "Group K": ["Colombia", "Portugal", "DR Congo", "Uzbekistan"],
-  "Group L": ["Ghana", "England", "Croatia", "Panama"],
-};
+const BRACKET_REGIONS = [
+  { title: "Jalur Paruh Atas", slots: [1, 2, 3, 4] },
+  { title: "Jalur Paruh Tengah A", slots: [5, 6, 7, 8] },
+  { title: "Jalur Paruh Tengah B", slots: [9, 10, 11, 12] },
+  { title: "Jalur Paruh Bawah", slots: [13, 14, 15, 16] },
+];
 
 const fallbackMatches = [
   {
@@ -104,13 +96,13 @@ const slides = Array.from(document.querySelectorAll(".slide"));
 const stage = document.querySelector(".stage");
 const liveMatches = document.querySelector("#liveMatches");
 const scheduleMatches = document.querySelector("#scheduleMatches");
-const standingsGrid = document.querySelector("#standingsGrid");
+const bracketBoard = document.querySelector("#bracketBoard");
 const activeLabel = document.querySelector("#activeLabel");
 const dataStatus = document.querySelector("#dataStatus");
 const liveHeading = document.querySelector("#liveHeading");
 const liveCount = document.querySelector("#liveCount");
 const scheduleCount = document.querySelector("#scheduleCount");
-const standingsCount = document.querySelector("#standingsCount");
+const bracketCount = document.querySelector("#bracketCount");
 const localDate = document.querySelector("#localDate");
 const localTime = document.querySelector("#localTime");
 const pauseIcon = document.querySelector("#pauseIcon");
@@ -217,6 +209,10 @@ function normalizeLocalMatch(match) {
     kickoff: match.kickoff,
     venue: match.venue || "",
     group: match.group || "",
+    stage: match.stage || match.round || "",
+    bracketSlot: match.bracketSlot ?? null,
+    region: match.region || "",
+    winner: match.winner || "",
     league: match.league || "World Cup",
   };
 }
@@ -231,7 +227,10 @@ function render({ items, source }) {
     .sort((a, b) => new Date(a.kickoff) - new Date(b.kickoff))
     .slice(0, UPCOMING_LIMIT);
   const live = todaysMatches.filter((match) => isLive(match.status));
-  const featured = live.length ? live : todaysMatches.filter(hasScore).reverse();
+  const scored = items
+    .filter(hasScore)
+    .sort((a, b) => new Date(b.kickoff) - new Date(a.kickoff));
+  const featured = live.length ? live : scored;
   const visibleFeatured = featured.slice(0, FEATURED_SCORE_LIMIT);
   const headline = live.length ? "Live Score" : "Skor Terbaru";
 
@@ -244,13 +243,13 @@ function render({ items, source }) {
     ? upcoming.map(renderScheduleRow).join("")
     : renderEmpty("Belum ada jadwal berikutnya di data lokal");
 
-  const standings = buildStandings(items);
-  standingsGrid.innerHTML = renderStandings(standings);
+  const bracketMatches = getRoundOf32(items);
+  bracketBoard.innerHTML = renderBracket(bracketMatches);
 
   if (dataStatus) dataStatus.textContent = `${source}`;
   liveCount.textContent = live.length ? `${visibleFeatured.length} live` : `${visibleFeatured.length} skor`;
   scheduleCount.textContent = `${upcoming.length} berikutnya`;
-  standingsCount.textContent = `${Object.keys(standings).length} grup`;
+  bracketCount.textContent = `${bracketMatches.length} laga`;
 }
 
 function renderLiveCard(match) {
@@ -287,7 +286,7 @@ function renderScheduleRow(match) {
       </div>
       <div class="venue">
         <b>${statusLabel(match)}</b>
-        <span>${escapeHtml(match.group || match.venue || "")}</span>
+        <span>${escapeHtml(match.group || match.stage || match.venue || "")}</span>
       </div>
     </article>
   `;
@@ -297,124 +296,98 @@ function renderEmpty(message) {
   return `<div class="empty-state">${escapeHtml(message)}</div>`;
 }
 
-function buildStandings(matches) {
-  const standings = Object.fromEntries(
-    Object.entries(GROUPS).map(([group, teams]) => [
-      group,
-      teams.map((team) => createStandingRow(group, team)),
-    ]),
-  );
-
-  matches.filter(hasScore).forEach((match) => {
-    const group = match.group || "Group ?";
-    if (!standings[group]) {
-      standings[group] = [createStandingRow(group, match.home), createStandingRow(group, match.away)];
-    }
-
-    const home = getStandingTeam(standings[group], group, match.home);
-    const away = getStandingTeam(standings[group], group, match.away);
-    const homeGoals = Number(match.homeScore);
-    const awayGoals = Number(match.awayScore);
-
-    home.played += 1;
-    away.played += 1;
-    home.gf += homeGoals;
-    home.ga += awayGoals;
-    away.gf += awayGoals;
-    away.ga += homeGoals;
-
-    if (homeGoals > awayGoals) {
-      home.won += 1;
-      away.lost += 1;
-      home.points += 3;
-      home.form.push("W");
-      away.form.push("L");
-    } else if (homeGoals < awayGoals) {
-      away.won += 1;
-      home.lost += 1;
-      away.points += 3;
-      away.form.push("W");
-      home.form.push("L");
-    } else {
-      home.drawn += 1;
-      away.drawn += 1;
-      home.points += 1;
-      away.points += 1;
-      home.form.push("D");
-      away.form.push("D");
-    }
-  });
-
-  Object.values(standings).forEach((groupRows) => {
-    groupRows.sort((a, b) => {
-      const gdDiff = b.gd - a.gd;
-      const gfDiff = b.gf - a.gf;
-      return b.points - a.points || gdDiff || gfDiff || a.name.localeCompare(b.name);
-    });
-  });
-
-  return standings;
+function getRoundOf32(matches) {
+  return matches
+    .filter((match) => (match.stage || "").toLowerCase().includes("round of 32") || match.bracketSlot)
+    .sort((a, b) => Number(a.bracketSlot || 99) - Number(b.bracketSlot || 99));
 }
 
-function renderStandings(standings) {
-  return Object.entries(standings)
-    .map(
-      ([group, rows]) => `
-        <section class="group-card">
-          <header>
-            <h3>${escapeHtml(group.replace("Group", "Grp."))}</h3>
-            <span>PL</span>
-            <span>GD</span>
-            <span>PTS</span>
-          </header>
-          <div class="group-table">
-            ${rows.map(renderStandingRow).join("")}
-          </div>
-        </section>
-      `,
-    )
-    .join("");
-}
+function renderBracket(matches) {
+  if (!matches.length) return renderEmpty("Belum ada data bagan fase gugur");
 
-function renderStandingRow(row, index) {
-  const qualifier = index < 2 ? "qualifier" : index === 2 ? "watch" : "";
+  const bySlot = new Map(matches.map((match) => [Number(match.bracketSlot), match]));
+  const regionMarkup = BRACKET_REGIONS.map((region) => renderBracketRegion(region, bySlot)).join("");
+  const winners = matches.map((match) => getWinner(match) || `Winner ${match.bracketSlot}`);
+
   return `
-    <article class="standing-row ${qualifier}">
-      <span class="rank">${index + 1}</span>
-      <span class="mini-flag">${teamInitial(row.name)}</span>
-      <span class="standing-team">${escapeHtml(row.name)}</span>
-      <span>${row.played}</span>
-      <span>${signed(row.gd)}</span>
-      <strong>${row.points}</strong>
+    <div class="bracket-regions">${regionMarkup}</div>
+    <aside class="bracket-path">
+      <div class="path-card">
+        <span class="path-label">Jalur Berikutnya</span>
+        <h3>16 Besar</h3>
+        <div class="winner-grid">
+          ${chunk(winners, 2).map((pair, index) => renderWinnerPair(pair, index + 1)).join("")}
+        </div>
+      </div>
+      <div class="path-card final-card">
+        <span class="path-label">Perempat Final · Semifinal · Final</span>
+        <h3>Road to Final</h3>
+        <p>Pemenang akan naik otomatis setelah skor pertandingan diisi.</p>
+      </div>
+    </aside>
+  `;
+}
+
+function renderBracketRegion(region, bySlot) {
+  return `
+    <section class="bracket-region">
+      <header>${escapeHtml(region.title)}</header>
+      <div class="bracket-matches">
+        ${region.slots.map((slot) => renderBracketMatch(bySlot.get(slot), slot)).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function renderBracketMatch(match, slot) {
+  if (!match) {
+    return `
+      <article class="bracket-match is-empty">
+        <span class="match-number">${slot}</span>
+        <strong>Menunggu tim</strong>
+      </article>
+    `;
+  }
+
+  return `
+    <article class="bracket-match ${isFinished(match.status) ? "is-finished" : ""}">
+      <span class="match-number">${slot}</span>
+      <div class="bracket-team ${getWinner(match) === match.home ? "winner" : ""}">
+        <span>${teamInitial(match.home)}</span>
+        <strong>${escapeHtml(match.home)}</strong>
+      </div>
+      <em>${scoreText(match)}</em>
+      <div class="bracket-team ${getWinner(match) === match.away ? "winner" : ""}">
+        <span>${teamInitial(match.away)}</span>
+        <strong>${escapeHtml(match.away)}</strong>
+      </div>
+      <small>${formatTime(match.kickoff)} WIB · ${statusLabel(match)}</small>
     </article>
   `;
 }
 
-function createStandingRow(group, name) {
-  return {
-    group,
-    name,
-    played: 0,
-    won: 0,
-    drawn: 0,
-    lost: 0,
-    gf: 0,
-    ga: 0,
-    points: 0,
-    form: [],
-    get gd() {
-      return this.gf - this.ga;
-    },
-  };
+function renderWinnerPair(pair, index) {
+  return `
+    <article class="winner-pair">
+      <span>R16-${index}</span>
+      <strong>${escapeHtml(pair[0] || `Winner ${index * 2 - 1}`)}</strong>
+      <em>vs</em>
+      <strong>${escapeHtml(pair[1] || `Winner ${index * 2}`)}</strong>
+    </article>
+  `;
 }
 
-function getStandingTeam(rows, group, name) {
-  let row = rows.find((team) => team.name === name);
-  if (!row) {
-    row = createStandingRow(group, name);
-    rows.push(row);
-  }
-  return row;
+function getWinner(match) {
+  if (!isFinished(match.status) || !hasScore(match)) return "";
+  if (Number(match.homeScore) > Number(match.awayScore)) return match.home;
+  if (Number(match.awayScore) > Number(match.homeScore)) return match.away;
+  return match.winner || "";
+}
+
+function chunk(values, size) {
+  return Array.from({ length: Math.ceil(values.length / size) }, (_, index) =>
+    values.slice(index * size, index * size + size),
+  );
 }
 
 function isLive(status) {
@@ -441,11 +414,6 @@ function scoreText(match) {
   const home = match.homeScore ?? "-";
   const away = match.awayScore ?? "-";
   return `${home} : ${away}`;
-}
-
-function signed(value) {
-  if (value > 0) return `+${value}`;
-  return String(value);
 }
 
 function teamInitial(name) {
