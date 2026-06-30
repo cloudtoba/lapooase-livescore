@@ -464,6 +464,16 @@ h2 {
   text-align: center;
 }
 
+.score-penalty {
+  display: block;
+  margin-top: 6px;
+  font-family: "Bricolage Grotesque", Inter, sans-serif;
+  font-size: 0.26em;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 .match-note {
   margin: 0;
   color: var(--soft);
@@ -529,6 +539,12 @@ h2 {
   color: var(--cream);
   font-style: normal;
   text-align: center;
+}
+
+.fixture .score-penalty,
+.bracket-match .score-penalty {
+  margin-top: 2px;
+  font-size: 0.58em;
 }
 
 .standings-grid {

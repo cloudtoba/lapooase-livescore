@@ -204,6 +204,8 @@ function normalizeLocalMatch(match) {
     away: match.away,
     homeScore: match.homeScore ?? null,
     awayScore: match.awayScore ?? null,
+    homePenalty: match.homePenalty ?? null,
+    awayPenalty: match.awayPenalty ?? null,
     status: match.status || "NS",
     elapsed: match.elapsed ?? null,
     kickoff: match.kickoff,
@@ -264,7 +266,7 @@ function renderLiveCard(match) {
           <span class="team-flag">${teamInitial(match.home)}</span>
           <span class="team-name">${escapeHtml(match.home)}</span>
         </span>
-        <strong class="score">${scoreText(match)}</strong>
+        <strong class="score">${scoreMarkup(match)}</strong>
         <span class="team away">
           <span class="team-name">${escapeHtml(match.away)}</span>
           <span class="team-flag">${teamInitial(match.away)}</span>
@@ -281,7 +283,7 @@ function renderScheduleRow(match) {
       <strong class="kickoff">${formatTime(match.kickoff)}</strong>
       <div class="fixture">
         <span>${escapeHtml(match.home)}</span>
-        <em>${scoreText(match)}</em>
+        <em>${scoreMarkup(match)}</em>
         <span>${escapeHtml(match.away)}</span>
       </div>
       <div class="venue">
@@ -356,7 +358,7 @@ function renderBracketMatch(match, slot) {
         <span>${teamInitial(match.home)}</span>
         <strong>${escapeHtml(match.home)}</strong>
       </div>
-      <em>${scoreText(match)}</em>
+      <em>${scoreMarkup(match)}</em>
       <div class="bracket-team ${getWinner(match) === match.away ? "winner" : ""}">
         <span>${teamInitial(match.away)}</span>
         <strong>${escapeHtml(match.away)}</strong>
@@ -381,6 +383,10 @@ function getWinner(match) {
   if (!isFinished(match.status) || !hasScore(match)) return "";
   if (Number(match.homeScore) > Number(match.awayScore)) return match.home;
   if (Number(match.awayScore) > Number(match.homeScore)) return match.away;
+  if (hasPenaltyScore(match)) {
+    if (Number(match.homePenalty) > Number(match.awayPenalty)) return match.home;
+    if (Number(match.awayPenalty) > Number(match.homePenalty)) return match.away;
+  }
   return match.winner || "";
 }
 
@@ -402,10 +408,16 @@ function hasScore(match) {
   return match.homeScore !== null && match.awayScore !== null;
 }
 
+function hasPenaltyScore(match) {
+  return match.homePenalty !== null && match.awayPenalty !== null;
+}
+
 function statusLabel(match) {
   if (match.status === "NS") return "Belum mulai";
   if (match.status === "HT") return "Half-time";
   if (match.status === "FT") return "Selesai";
+  if (match.status === "AET") return "Selesai extra time";
+  if (match.status === "PEN") return "Selesai penalti";
   if (match.elapsed) return `${match.elapsed}'`;
   return match.status || "Live";
 }
@@ -413,7 +425,17 @@ function statusLabel(match) {
 function scoreText(match) {
   const home = match.homeScore ?? "-";
   const away = match.awayScore ?? "-";
-  return `${home} : ${away}`;
+  const penalties = hasPenaltyScore(match) ? ` Pen ${match.homePenalty}-${match.awayPenalty}` : "";
+  return `${home} : ${away}${penalties}`;
+}
+
+function scoreMarkup(match) {
+  const home = match.homeScore ?? "-";
+  const away = match.awayScore ?? "-";
+  const penalty = hasPenaltyScore(match)
+    ? `<span class="score-penalty">Pen ${escapeHtml(match.homePenalty)}-${escapeHtml(match.awayPenalty)}</span>`
+    : "";
+  return `${home} : ${away}${penalty}`;
 }
 
 function teamInitial(name) {
